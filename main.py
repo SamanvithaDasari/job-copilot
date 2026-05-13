@@ -1,28 +1,32 @@
-"""Entry point. Phase 1: just verifies the setup is working."""
+"""Entry point. Phase 1.4: Telegram bot receiving messages."""
+import logging
 from src.config import config
+from src.telegram_bot import build_application
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 def main():
-    print("Job Copilot starting up…")
-    print()
-
+    # Validate config
     missing = config.validate()
     if missing:
         print("❌ Configuration issues:")
         for item in missing:
             print(f"  - {item}")
-        print()
-        print("Fix these in .env (or check files exist), then re-run.")
         return
 
-    print("✅ Config looks good!")
-    print(f"  Telegram bot: ...{config.TELEGRAM_BOT_TOKEN[-6:]} (last 6 chars)")
-    print(f"  Chat IDs: {config.TELEGRAM_CHAT_IDS}")
-    print(f"  Service account: {config.SERVICE_ACCOUNT_PATH.name}")
-    print(f"  Resume: {len(config.resume_text())} characters loaded")
-    print(f"  Gemini key: …{config.GEMINI_API_KEY[-6:]}")
-    print()
-    print("Ready for Step 1.3 (Google Sheet wiring).")
+    logger.info("Starting Job Copilot…")
+    logger.info(f"Notifying chat IDs: {config.TELEGRAM_CHAT_IDS}")
+
+    # Build and start the bot.
+    # run_polling() blocks here — bot runs until you hit Ctrl+C.
+    app = build_application()
+    logger.info("Bot is running. Send it a message in Telegram.")
+    app.run_polling(allowed_updates=["message", "callback_query"])
 
 
 if __name__ == "__main__":
